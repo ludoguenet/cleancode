@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\PriceTypeEnum;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class OrderController extends Controller
@@ -13,14 +12,7 @@ class OrderController extends Controller
     {
         $products = $this->simulateShoppingCart();
 
-        $totalPrice = $products->reduce(function (float $sum, Product $product) {
-            $price = match ($product->type) {
-                PriceTypeEnum::CLASSIC => $product->price,
-                PriceTypeEnum::WITH_GARNISHES => $product->price + $product->garnishes->sum('price'),
-                PriceTypeEnum::WITH_CUSTOM => $product->price + $product->customs->sum('price'),
-            };
-            return $sum + $price;
-        }, 0);
+        $totalPrice = $products->reduce(fn (float $sum, Product $product) => $sum + $product->getTypePrice->calculate(), 0);
 
         dd($totalPrice);
     }
